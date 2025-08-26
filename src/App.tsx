@@ -1,31 +1,62 @@
+import { useState, useMemo } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import JsonView from '@uiw/react-json-view';
+import { monokaiTheme } from '@uiw/react-json-view/monokai';
 import './index.css';
 
 function App() {
+  const [inputText, setInputText] = useState(
+    JSON.stringify(
+      {
+        inputData: {
+          id: "item-001",
+          name: "Produto X",
+          version: 1.0,
+          attributes: ["size: M", "color: blue", "material: cotton"],
+          description: "testando"
+        },
+        source: "manual_paste"
+      },
+      null,
+      2
+    )
+  );
+
+  const [parsedJson, setParsedJson] = useState<object | undefined>(undefined);
+  const [errorText, setErrorText] = useState<string | null>(null);
+
+  useMemo(() => {
+    try {
+      if (inputText.trim() === '') {
+        setParsedJson(undefined);
+        setErrorText(null);
+        return;
+      }
+      const parsed = JSON.parse(inputText);
+      setParsedJson(parsed);
+      setErrorText(null);
+    } catch (e) {
+      setParsedJson(undefined);
+      setErrorText(`Erro ao analisar JSON: ${e instanceof Error ? e.message : 'Formato inválido'}`);
+    }
+  }, [inputText]);
+
   return (
     <div className="flex flex-col h-screen bg-gray-100">
-
       <header className="bg-indigo-700 shadow-lg p-4 flex items-center justify-center text-center">
-        <h1 className="text-2xl font-semibold text-white">shadys viewer <h2 className='inline-block  ml-2 rotate-90'>:)</h2></h1>
+        <h1 className="text-2xl font-semibold text-white">
+          shadys viewer{' '}
+          <h2 className="inline-block  ml-2 rotate-90">:)</h2>
+        </h1>
       </header>
 
-
       <PanelGroup direction="horizontal" className="flex-1 bg-gray-50 overflow-hidden">
-        <Panel defaultSize={50} minSize={10} className='flex flex-col'>
+        <Panel defaultSize={50} minSize={10} className="flex flex-col">
           <textarea
             className="w-full flex-grow p-4 bg-zinc-800 font-mono text-base text-white resize-none transition duration-200 ease-in-out"
-          >
-            {JSON.stringify({
-              inputData: {
-                id: "item-001",
-                name: "Produto X",
-                version: 1.0,
-                attributes: ["size: M", "color: blue", "material: cotton"],
-                description: "testando"
-              },
-              source: "manual_paste"
-            }, null, 2)}
-          </textarea>
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+          />
         </Panel>
 
         <PanelResizeHandle className="w-2 bg-zinc-900 cursor-col-resize flex flex-col items-center justify-center">
@@ -33,30 +64,27 @@ function App() {
         </PanelResizeHandle>
 
         <Panel defaultSize={50} minSize={10} className="flex flex-col">
-          <pre
-            className="w-full h-full p-4 bg-zinc-800 font-mono text-base text-white resize-none outline-none focus:ring-2 focus:ring-blue-400 transition duration-200 ease-in-out rounded-lg overflow-auto whitespace-pre-wrap" // Adicionado outline-none
+          <div
+            className="w-full h-full p-4 font-mono text-base resize-none outline-none focus:ring-2 focus:ring-blue-400 transition duration-200 ease-in-out rounded-lg overflow-auto whitespace-pre-wrap"
+            style={{ backgroundColor: errorText ? '#440a0a' : '#27272a', color: errorText ? '#ffcccc' : 'white' }}
           >
-            <code>
-              {JSON.stringify({
-                formattedOutput: {
-                  status: "success",
-                  timestamp: "2025-07-30T00:00:00Z",
-                  processedData: {
-                    type: "json",
-                    contentLength: 250,
-                    structure: "nested"
-                  },
-                  notes: "Este é o campo de saída formatada. Arraste a barra central para redimensionar os painéis!"
-                },
-                detailedLog: [
-                  "Parsing started...",
-                  "Validation successful.",
-                  "Formatting applied.",
-                  "Displaying result."
-                ]
-              }, null, 2)}
-            </code>
-          </pre>
+            {errorText ? (
+              <pre>
+                <code>{errorText}</code>
+              </pre>
+            ) : (
+              <JsonView
+                value={parsedJson}
+                style={{
+                  ...monokaiTheme,
+                  backgroundColor: 'transparent',
+                  width: '100%',
+                  overflowX: 'auto',
+                  color: 'cyan'
+                }}
+              />
+            )}
+          </div>
         </Panel>
       </PanelGroup>
     </div>
