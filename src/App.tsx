@@ -24,6 +24,26 @@ function App() {
   const [parsedJson, setParsedJson] = useState<object | undefined>(undefined);
   const [errorText, setErrorText] = useState<string | null>(null);
 
+  const counts = useMemo(() => {
+    if (inputText.trim() === '') {
+      return {
+        words: 0,
+        lines: 1,
+        chars: 0,
+        tokens: 0,
+        size: 0,
+      };
+    }
+
+    const words = inputText.split(/\s+/).filter(Boolean).length;
+    const lines = inputText.split('\n').length;
+    const chars = inputText.length;
+    const tokens = words;
+    const size = (new TextEncoder().encode(inputText).length / 1024).toFixed(2);
+
+    return { words, lines, chars, tokens, size };
+  }, [inputText]);
+
   useMemo(() => {
     try {
       if (inputText.trim() === '') {
@@ -88,6 +108,24 @@ function App() {
           </div>
         </Panel>
       </PanelGroup>
+
+      <footer className="bg-zinc-800 text-gray-400 text-center text-sm p-2 flex justify-between items-center px-4">
+        <div className="flex space-x-4">
+          <span>Words: {counts.words}</span>
+          <span>Lines: {counts.lines}</span>
+          <span>Chars: {counts.chars}</span>
+          <span>Tokens: {counts.tokens}</span>
+          <span>Size: {counts.size} KB</span>
+        </div>
+        <a
+          href="https://github.com/coutinho98/shadysviewer"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-white hover:underline underline-offset-4"
+        >
+          by coutinho98
+        </a>
+      </footer>
     </div>
   );
 }
