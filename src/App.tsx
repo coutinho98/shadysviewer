@@ -9,13 +9,12 @@ function App() {
     JSON.stringify(
       {
         inputData: {
-          id: "item-001",
-          name: "Produto X",
+          id: "0",
+          name: "Shadys",
           version: 1.0,
-          attributes: ["size: M", "color: blue", "material: cotton"],
-          description: "testando"
+          attributes: ["age: 26", "height: 160", "location: Bahia"],
+          description: "40cm de braço"
         },
-        source: "manual_paste"
       },
       null,
       2
@@ -46,7 +45,7 @@ function App() {
       <header className="bg-indigo-700 shadow-lg p-4 flex items-center justify-center text-center">
         <h1 className="text-2xl font-semibold text-white">
           shadys viewer{' '}
-          <h2 className="inline-block  ml-2 rotate-90">:)</h2>
+          <span className="inline-block  ml-2 rotate-90">:)</span>
         </h1>
       </header>
 
@@ -74,14 +73,16 @@ function App() {
               </pre>
             ) : (
               <JsonView
-                value={parsedJson}
+                value={parsedJson || {}}
                 style={{
                   ...monokaiTheme,
                   backgroundColor: 'transparent',
                   width: '100%',
                   overflowX: 'auto',
-                  color: 'cyan'
+                  fontSize: '15px',
                 }}
+                collapsed={3}
+                displayDataTypes={true}
               />
             )}
           </div>
