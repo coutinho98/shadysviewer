@@ -1,28 +1,93 @@
 import { useState, useMemo } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import JsonView from '@uiw/react-json-view';
-import { monokaiTheme } from '@uiw/react-json-view/monokai';
+import { vscodeTheme  } from '@uiw/react-json-view/vscode';
 import './index.css';
+
+const MAX_SIZE_MB = 1; 
+const MAX_CHAR_COUNT = MAX_SIZE_MB * 1024 * 1024;
 
 function App() {
   const [inputText, setInputText] = useState(
     JSON.stringify(
       {
-        inputData: {
-          id: "0",
-          name: "Shadys",
-          version: 1.0,
-          attributes: ["age: 26", "height: 160", "location: Bahia"],
-          description: "40cm de braço"
-        },
-      },
-      null,
-      2
+        "entity": {
+          "name": "Darth Vader",
+          "id": "sith-lord-001",
+          "classification": "Sith Lord",
+          "status": "Active Duty",
+          "affiliation": "Galactic Empire",
+          "biographical_data": {
+            "birth_name": "Anakin Skywalker",
+            "homeworld": "Tatooine",
+            "known_associates": [
+              "Emperor Palpatine",
+              "Grand Moff Tarkin",
+              "The Inquisitors"
+            ],
+            "family": {
+              "father": "The Force",
+              "mother": "Shmi Skywalker",
+              "children": [
+                "Luke Skywalker",
+                "Leia Organa"
+              ]
+            }
+          },
+          "physical_attributes": {
+            "height": "2.02 meters",
+            "armor_system": {
+              "type": "Life-support suit",
+              "components": [
+                "Helmet with integrated voice modulator",
+                "Chest plate with life-support controls",
+                "Reinforced durasteel plating"
+              ],
+              "function": "Maintains life support for extensive injuries, provides psychological intimidation."
+            },
+            "cybernetic_enhancements": [
+              "Prosthetic limbs",
+              "Respiratory system"
+            ]
+          },
+          "abilities_and_equipment": {
+            "force_abilities": [
+              {
+                "ability": "Force Choke",
+                "power_level": "High"
+              },
+              {
+                "ability": "Telekinesis",
+                "power_level": "Master"
+              },
+              {
+                "ability": "Force Lightning Resistance",
+                "power_level": "Variable"
+              }
+            ],
+            "weapon": {
+              "name": "Lightsaber",
+              "crystal_color": "Red",
+              "hilt_design": "Custom"
+            },
+            "starship": "TIE Advanced x1"
+          },
+          "psychological_profile": {
+            "personality_traits": [
+              "Intimidating",
+              "Cunning",
+              "Ruthless"
+            ],
+            "major_weakness": "Conflict between light and dark side of the Force, compassion for his son."
+          }
+        }
+      }
     )
   );
 
   const [parsedJson, setParsedJson] = useState<object | undefined>(undefined);
   const [errorText, setErrorText] = useState<string | null>(null);
+  const [isLargeJson, setIsLargeJson] = useState<boolean>(false);
 
   const counts = useMemo(() => {
     if (inputText.trim() === '') {
@@ -31,20 +96,29 @@ function App() {
         lines: 1,
         chars: 0,
         tokens: 0,
-        size: 0,
+        size: '0.00'
       };
     }
 
     const words = inputText.split(/\s+/).filter(Boolean).length;
     const lines = inputText.split('\n').length;
     const chars = inputText.length;
-    const tokens = words;
+    const tokens = words; 
     const size = (new TextEncoder().encode(inputText).length / 1024).toFixed(2);
 
     return { words, lines, chars, tokens, size };
   }, [inputText]);
 
   useMemo(() => {
+    if (inputText.length > MAX_CHAR_COUNT) {
+      setIsLargeJson(true);
+      setErrorText(`JSON muito grande (${counts.size} KB). O visualizador pode ter problemas de desempenho.`);
+      setParsedJson(undefined);
+      return;
+    } else {
+      setIsLargeJson(false);
+    }
+
     try {
       if (inputText.trim() === '') {
         setParsedJson(undefined);
@@ -58,7 +132,7 @@ function App() {
       setParsedJson(undefined);
       setErrorText(`Erro ao analisar JSON: ${e instanceof Error ? e.message : 'Formato inválido'}`);
     }
-  }, [inputText]);
+  }, [inputText, counts.size]);
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
@@ -91,17 +165,21 @@ function App() {
               <pre>
                 <code>{errorText}</code>
               </pre>
+            ) : isLargeJson ? (
+              <pre className="text-yellow-300">
+                <code>O arquivo JSON é muito grande para ser visualizado de forma otimizada. A performance pode ser afetada.</code>
+              </pre>
             ) : (
               <JsonView
                 value={parsedJson || {}}
                 style={{
-                  ...monokaiTheme,
+                  ...vscodeTheme,
                   backgroundColor: 'transparent',
                   width: '100%',
                   overflowX: 'auto',
                   fontSize: '15px',
                 }}
-                collapsed={3}
+                collapsed={5}
                 displayDataTypes={true}
               />
             )}
@@ -118,10 +196,10 @@ function App() {
           <span>Size: {counts.size} KB</span>
         </div>
         <a
-          href="https://github.com/coutinho98/shadysviewer"
+          href="https://coutinho98.github.io/"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-white hover:underline underline-offset-4"
+          className="text-white/60 italic transition duration-400 ease-in-out underline-transition"
         >
           by coutinho98
         </a>
